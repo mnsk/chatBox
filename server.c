@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <sys/socket.h>
-#include <sys/types.h> 
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 #define PORT 9734
 #define SIZE 1024
@@ -14,6 +14,7 @@ char buffer[SIZE];
 
 int main(int argc, char const *argv[])
 {
+	pid_t id;
 	int serverSocketfd,clientSocketfd;
 	struct sockaddr_in serverAddr;
 	struct sockaddr_in clientAddr;
@@ -34,9 +35,11 @@ int main(int argc, char const *argv[])
 	if(listen(serverSocketfd,MAX_FD) == -1) 
 		perror("/nError in queueing");
 
+	signal(SIGCHLD, SIG_IGN);
+
+	while(1) {
 		int client_size;
 
-		printf("\nServer Waiting");
 
 		client_size = sizeof(clientAddr);
 		clientSocketfd = accept(serverSocketfd,(struct sockaddr *)&clientAddr,&client_size);
@@ -44,18 +47,41 @@ int main(int argc, char const *argv[])
 			perror("\nError in accepting");
 			return 0;
 		}
+	
+		id = fork();
+		if(id == -1) {
+			perror("\nFork");
+			return 0;
+		}
+
+		if(id == 0) {
+			while(1) {
+
+				printf("\nServer Waiting");
+
+				memset(buffer, 0, SIZE);  //making the buffer 0
+
+				if(read(clientSocketfd,buffer,SIZE) == -1)
+					perror("\nError in reading");
 		
-	while(1) {
-		memset(buffer, 0, SIZE);
+				if(strncmp(buffer,"exit",4) != 0) {
+		
+					printf("\nClient send: %s",buffer);
 
-		if(read(clientSocketfd,buffer,SIZE) == -1)
-			perror("\nError in reading");
-		printf("\nClient send: %s",buffer);
+					if(write(clientSocketfd,"Msg received.",13) == -1)
+						perror("\nError in writing");
+		
+				}
+				else {
+					printf("\nclient exit...");
+					close(clientSocketfd);
+					return 0;
+				}
 
-		if(write(clientSocketfd,"Msg received.",13) == -1)
-			perror("\nError in writing");
-
-		//close(clientSocketfd);
+			}	
+		}
+		else
+		close(clientSocketfd);
 	}
 
 	return 0;

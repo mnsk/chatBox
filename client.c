@@ -39,6 +39,8 @@ int main(int argc, char const *argv[])
 		printf("\nmsg@ ");
 		while((buffer_write[n++]=getchar())!='\n');
 
+	if(strncmp(buffer_write,"exit",4) != 0) {
+		
 		if(write(clientSocketfd,buffer_write,strlen(buffer_write)) == -1)
 			perror("\nError in writing");
 		
@@ -46,8 +48,15 @@ int main(int argc, char const *argv[])
 			perror("\nError in reading");
 		
 		printf("\nServer send: %s",buffer_read);
+	}
+	else { 
 
-		//close(clientSocketfd);
+		if(write(clientSocketfd,"exit",4) == -1)
+			perror("\nError in writing");
+		close(clientSocketfd);
+		break;
+	}
+			
 	}
 
 	return 0;
