@@ -3,16 +3,18 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <string.h>
 
 #define PORT 9734
 #define SIZE 1024
 #define MAX_FD 5
 
-char buffer[SIZE];
+char buffer_write[SIZE];
+char buffer_read[SIZE];
 
 int main(int argc, char const *argv[])
 {
-	int clientSocketfd;
+	int clientSocketfd,n;
 	struct sockaddr_in serverAddr;
 	//struct sockaddr_in clientAddr;
 
@@ -23,32 +25,30 @@ int main(int argc, char const *argv[])
 	/*Configuring settiings for server address structure*/
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(PORT);
-	serverAddr.sin_addr.s_addr = inet_addr("192.168.1.5");  //server's ip address
+	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");  //server's ip address
+
 
 	if(connect(clientSocketfd,(struct sockaddr *)&serverAddr,sizeof(serverAddr)) == -1)
 		perror("\nError in connecting");
+	
+	while(1) {
+		memset(buffer_write, 0, SIZE);
+		memset(buffer_read, 0, SIZE);
+		n = 0;
 
+		printf("\nmsg@ ");
+		while((buffer_write[n++]=getchar())!='\n');
 
-	// while(1) {
-	// 	int client_size;
-
-	// 	printf("\nServer Waiting");
-
-	// 	client_size = sizeof(clientAddr);
-	// 	clientSocketfd = accept(serverSocketfd,(struct sockaddr *)&clientAddr,&client_size);
-	// 	if(clientSocketfd == -1)
-	// 		perror("\nError in accepting");
-
-		if(write(clientSocketfd,"Who is this?",12) == -1)
+		if(write(clientSocketfd,buffer_write,strlen(buffer_write)) == -1)
 			perror("\nError in writing");
 		
-		if(read(clientSocketfd,buffer,SIZE) == -1)
+		if(read(clientSocketfd,buffer_read,SIZE) == -1)
 			perror("\nError in reading");
 		
-		printf("\nServer send: %s",buffer);
+		printf("\nServer send: %s",buffer_read);
 
-		close(clientSocketfd);
-	//}
+		//close(clientSocketfd);
+	}
 
 	return 0;
 }

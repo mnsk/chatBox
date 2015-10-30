@@ -6,5 +6,5 @@ server: server.c
 clean:
 	rm -rf server client
 
-cleanport:
-	sudo fuser -k 9000/tcp #enter port number here
+port:
+	sudo fuser -k 9734/tcp #enter port number here
