@@ -28,7 +28,7 @@ void *rcvThread (void *data) {
 			break;
 		}
 		if(ret > 0)
-		printf("\nServer send: %s",buffer_read);
+		printf("\n%s",buffer_read);
 		else if(ret == 0) {
 			printf("Closed\n");
 			close(*clientSocketfd);
@@ -68,6 +68,10 @@ int main(int argc, char const *argv[])
 			printf("Error in creating thread.\n");
 			return 0;
 		}
+
+	if(read(clientSocketfd,buffer_read,SIZE) == -1)
+		perror("No identity");
+	printf("\n%s",buffer_read);
 	
 	while(1) {
 		memset(buffer_write, 0, SIZE);

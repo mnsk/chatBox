@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
 
 #define PORT 9734
 #define SIZE 1024
@@ -16,12 +17,24 @@ int array[MAX_FD] = {0};
 int i = 0;
 
 void *servThread (void *data) {
+	time_t ltime;
 	char buffer[SIZE];
+	char buffer_write[SIZE];
 	int *clientSocketfd = (int *)data;
 	int j,k;
 	k = *clientSocketfd;
 
-	printf("Client %d connected\n",*clientSocketfd);
+	printf("\nClient %d connected...",*clientSocketfd);
+
+	char statement[17] = "You are Client: ";
+	char ch[1];
+	sprintf(ch,"%d",*clientSocketfd);
+	strcat(statement,ch);
+
+	if(write(*clientSocketfd,statement,strlen(statement)) == -1) {
+		perror("\nCant send client number");
+	}
+
 	printf("Array: ");
 	for(j = 0; j< MAX_FD; j++) {
 		printf("%d ",array[j]);
@@ -32,7 +45,8 @@ void *servThread (void *data) {
 
 				*clientSocketfd = k;
 
-				memset(buffer, 0, SIZE);  //making the buffer 0
+				memset(buffer, 0, SIZE);	
+				memset(buffer_write, 0, SIZE);  //making the buffer 0
 
 				int ret = read(*clientSocketfd,buffer,SIZE);
 				if(ret == -1) {
@@ -49,7 +63,15 @@ void *servThread (void *data) {
 					for(j = 0; j < i; j++) {
 						if(array[j] != *clientSocketfd) {
 						//pthread_mutex_lock(&arrayMutex);
-							if(write(array[j],buffer,strlen(buffer)) == -1) {
+							ltime=time(NULL);
+							strcat(buffer_write,asctime(localtime(&ltime)));
+							strcpy(statement,"Client ");
+							strcat(statement,ch);
+							strcat(statement,": ");
+							strcat(buffer_write,statement);
+							strcat(buffer_write,buffer);
+
+							if(write(array[j],buffer_write,strlen(buffer_write)) == -1) {
 								perror("\nError in writing");
 								break;
 							}
