@@ -78,7 +78,7 @@ int main(int argc, char const *argv[])
 
 		if(write(clientSocketfd,buffer_write,strlen(buffer_write)) == -1) {
 			perror("\nError in writing");
-			return 0;
+			break;
 		}
 
 	// if(strncmp(buffer_write,"exit",4) != 0) {

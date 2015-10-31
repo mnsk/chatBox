@@ -18,9 +18,19 @@ int i = 0;
 void *servThread (void *data) {
 	char buffer[SIZE];
 	int *clientSocketfd = (int *)data;
-	int j;
+	int j,k;
+	k = *clientSocketfd;
+
+	printf("Client %d connected\n",*clientSocketfd);
+	printf("Array: ");
+	for(j = 0; j< MAX_FD; j++) {
+		printf("%d ",array[j]);
+	}
+	printf("\n");
 
 		while(1) {
+
+				*clientSocketfd = k;
 
 				memset(buffer, 0, SIZE);  //making the buffer 0
 
@@ -54,14 +64,6 @@ void *servThread (void *data) {
 					break;
 				}
 
-				
-		
-				// }
-				// else {
-				// 	printf("\nclient exit...");
-				// 	close(*clientSocketfd);
-				// 	pthread_exit(NULL);
-				// }
 			}
 		pthread_exit(NULL);
 }
@@ -75,24 +77,32 @@ int main(int argc, char const *argv[])
 	//int arr[MAX_FD];
 
 	serverSocketfd = socket(AF_INET,SOCK_STREAM,0);
-	if(serverSocketfd == -1)
+	if(serverSocketfd == -1){
 		perror("\nError in creating socket");
+		return 0;
+	}
+	printf("Socket created...\n");
 
 	/*Configuring settiings for server address structure*/
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(PORT);
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if(bind(serverSocketfd,(struct sockaddr *)&serverAddr,sizeof(serverAddr)) == -1)
+	if(bind(serverSocketfd,(struct sockaddr *)&serverAddr,sizeof(serverAddr)) == -1) {
 		perror("\nError in assigning name to socket");
+		return 0;
+	}
+	printf("Binding complete..\n");
 
-	if(listen(serverSocketfd,MAX_FD) == -1) 
+	if(listen(serverSocketfd,MAX_FD) == -1) {
 		perror("/nError in queueing");
+		return 0;
+	}
 
 	while(1) {
 		int client_size;
 
-		printf("\nServer Waiting");
+		printf("\nServer Waiting...");
 
 		client_size = sizeof(clientAddr);
 		clientSocketfd = accept(serverSocketfd,(struct sockaddr *)&clientAddr,&client_size);
@@ -111,36 +121,10 @@ int main(int argc, char const *argv[])
 			i++;
 		}
 		else{
-			printf("Server Busy\n");
+			printf("Server Busy...\n");
 			break;
 		}
 
-
-
-			// while(1) {
-
-			// 	printf("\nServer Waiting");
-
-			// 	memset(buffer, 0, SIZE);  //making the buffer 0
-
-			// 	if(read(clientSocketfd,buffer,SIZE) == -1)
-			// 		perror("\nError in reading");
-		
-			// 	if(strncmp(buffer,"exit",4) != 0) {
-		
-			// 		printf("\nClient %d: %s",clientSocketfd,buffer);
-
-			// 		if(write(clientSocketfd,"Msg received.",13) == -1)
-			// 			perror("\nError in writing");
-		
-			// 	}
-			// 	else {
-			// 		printf("\nclient exit...");
-			// 		close(clientSocketfd);
-			// 		return 0;
-			// 	}
-
-			// }	
 	}
 	pthread_mutex_destroy(&arrayMutex);
 
