@@ -1,7 +1,7 @@
 client: client.c
-	gcc -o client client.c -Wall
+	gcc -o client client.c -pthread -Wall
 server: server.c
-	gcc -o server server.c -Wall
+	gcc -o server server.c -pthread -Wall
 
 clean:
 	rm -rf server client
