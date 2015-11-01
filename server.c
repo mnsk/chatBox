@@ -13,7 +13,7 @@
 
 pthread_mutex_t arrayMutex = PTHREAD_MUTEX_INITIALIZER;
 
-int array[MAX_FD] = {0};
+int array[MAX_FD] = {0};  //array for storing file descriptors
 int i = 0;
 
 void *servThread (void *data) {
@@ -34,7 +34,7 @@ void *servThread (void *data) {
 	if(write(*clientSocketfd,statement,strlen(statement)) == -1) {
 		perror("\nCant send client number");
 	}
-
+	// for checking array of fds
 	printf("Array: ");
 	for(j = 0; j< MAX_FD; j++) {
 		printf("%d ",array[j]);
@@ -43,7 +43,7 @@ void *servThread (void *data) {
 
 		while(1) {
 
-				*clientSocketfd = k;
+				*clientSocketfd = k;     //workaround for the bug(file descriptor getting lost)
 
 				memset(buffer, 0, SIZE);	
 				memset(buffer_write, 0, SIZE);  //making the buffer 0
@@ -63,6 +63,7 @@ void *servThread (void *data) {
 					for(j = 0; j < i; j++) {
 						if(array[j] != *clientSocketfd) {
 						//pthread_mutex_lock(&arrayMutex);
+						/*giving a time stamp and concatinating the buffer*/ 
 							ltime=time(NULL);
 							strcat(buffer_write,asctime(localtime(&ltime)));
 							strcpy(statement,"Client ");
@@ -70,7 +71,8 @@ void *servThread (void *data) {
 							strcat(statement,": ");
 							strcat(buffer_write,statement);
 							strcat(buffer_write,buffer);
-
+							
+						/*broadcasting to all file descriptors except own one*/
 							if(write(array[j],buffer_write,strlen(buffer_write)) == -1) {
 								perror("\nError in writing");
 								break;
